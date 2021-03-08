@@ -93,13 +93,14 @@ Config
 DI
 ------------
 // EasySwooleEvent.php
-    <?php
-        use EasySwooleTool\HyperfOrm\Permission\Adapters\DatabaseAdapter;
-        use EasySwooleTool\HyperfOrm\Permission\Models\Rule;
-        use EasySwoole\Component\Di;
-        
-        Di::getInstance()->set(DatabaseAdapter::class, DatabaseAdapter::class);
-        Di::getInstance()->set(Rule::class,  Rule::class, []);
+```php
+    use EasySwooleTool\HyperfOrm\Permission\Adapters\DatabaseAdapter;
+    use EasySwooleTool\HyperfOrm\Permission\Models\Rule;
+    use EasySwoole\Component\Di;
+    
+    Di::getInstance()->set(DatabaseAdapter::class, DatabaseAdapter::class);
+    Di::getInstance()->set(Rule::class,  Rule::class, []);
+```
 Use
 ------
 Once installed you can do stuff like this:

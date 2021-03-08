@@ -29,15 +29,15 @@ class Rule extends Model
      * @var array
      */
     protected $casts = [
-        'ptype' => 'string',
+        'ptype'     => 'string',
         'create_at' => 'datetime',
         'update_at' => 'datetime',
-        'v0' => 'string',
-        'v1' => 'string',
-        'v2' => 'string',
-        'v3' => 'string',
-        'v4' => 'string',
-        'v5' => 'string',
+        'v0'        => 'string',
+        'v1'        => 'string',
+        'v2'        => 'string',
+        'v3'        => 'string',
+        'v4'        => 'string',
+        'v5'        => 'string',
     ];
 
     /**
