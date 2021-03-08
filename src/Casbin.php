@@ -3,6 +3,7 @@
 namespace EasySwooleTool\HyperfOrm\Permission;
 
 use Casbin\Enforcer;
+use Casbin\Exceptions\CasbinException;
 use Casbin\Model\Model;
 use EasySwoole\Component\Di;
 use EasySwoole\EasySwoole\Config;
@@ -52,7 +53,13 @@ class Casbin
         $this->log = $this->config['log']['enabled'] ?: false;
     }
 
-    public function enforcer($newInstance = false): Enforcer
+    /**
+     * @param bool $newInstance
+     *
+     * @return Enforcer
+     * @throws CasbinException
+     */
+    public function getEnforcer($newInstance = false): Enforcer
     {
         if ($newInstance || is_null($this->enforcer)) {
             $this->enforcer = new Enforcer($this->model, $this->adapter, $this->log);
@@ -76,10 +83,5 @@ class Casbin
             }
         }
         return $a;
-    }
-
-    public function __call($name, $params)
-    {
-        return call_user_func_array([$this->enforcer(), $name], $params);
     }
 }
