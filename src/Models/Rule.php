@@ -18,14 +18,12 @@ class Rule extends Model
 
     /**
      * Create a new Eloquent model instance.
-     *
-     * @param array $attributes
      */
-    public function __construct(array $attributes = [])
+    public function __construct()
     {
         $config = Config::getInstance()->getConf('permission.database.rules_table');
         $this->setTable($config ?? 'rules');
 
-        parent::__construct($attributes);
+        parent::__construct();
     }
 }
