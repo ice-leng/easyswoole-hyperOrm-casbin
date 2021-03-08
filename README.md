@@ -14,13 +14,13 @@ The preferred way to install this extension is through [composer](http://getcomp
 Either run
 
 ```
-composer require easyswoole-tool/hyperf-orm-permission
+composer require easyswoole-tool/hyperf-orm-permission dev-master
 ```
 
 or add
 
 ```
-"easyswoole-tool/hyperf-orm-permission": "dev-main"
+"easyswoole-tool/hyperf-orm-permission": "dev-master"
 ```
 to the require section of your `composer.json` file.
 
