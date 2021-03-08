@@ -1,6 +1,6 @@
 {
     "name": "easyswoole-tool/hyperf-orm-permission",
-    "description": "An authorization library that supports access control models like ACL, RBAC, ABAC in Hyperf.",
+    "description": "An authorization library that supports access control models like ACL, RBAC, ABAC in EsaySwoole Hyperf Orm.",
     "homepage" : "https://www.easyswoole.com/",
     "license" : "Apache-2.0",
     "minimum-stability": "stable",
