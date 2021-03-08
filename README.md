@@ -41,8 +41,8 @@ CREATE TABLE  if not exists  `casbin_rules` (
   `v3` varchar(255) DEFAULT NULL,
   `v4` varchar(255) DEFAULT NULL,
   `v5` varchar(255) DEFAULT NULL,
-  `create_time` timestamp NULL DEFAULT NULL,
-  `update_time` timestamp NULL DEFAULT NULL,
+  `create_at` int NULL DEFAULT NULL,
+  `update_at` int NULL DEFAULT NULL,
   PRIMARY KEY (`id`)
 ) ENGINE=InnoDB  DEFAULT CHARSET=utf8mb4;
 ```

@@ -35,10 +35,7 @@ class Casbin
     public function __construct($config = [])
     {
         $configs = Config::getInstance()->getConf('permission');
-        $this->config = $this->mergeConfig(
-            $configs ?? [],
-            $config
-        );
+        $this->config = $this->mergeConfig($configs ?? [], $config);
 
         $this->adapter = $this->config['adapter'];
         if (!is_null($this->adapter)) {
@@ -55,7 +52,7 @@ class Casbin
         $this->log = $this->config['log']['enabled'] ?: false;
     }
 
-    public function enforcer($newInstance = false)
+    public function enforcer($newInstance = false): Enforcer
     {
         if ($newInstance || is_null($this->enforcer)) {
             $this->enforcer = new Enforcer($this->model, $this->adapter, $this->log);
@@ -78,7 +75,6 @@ class Casbin
                 }
             }
         }
-
         return $a;
     }
 
