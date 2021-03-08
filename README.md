@@ -107,7 +107,7 @@ Once installed you can do stuff like this:
         
     use EasySwooleTool\HyperfOrm\Permission\Casbin;
 
-    $casbin = new Casbin();
+    $casbin = (new Casbin())->getEnforcer();
     // adds permissions to a user
     $casbin->addPermissionForUser('eve', 'articles', 'read');
     // adds a role for a user.
