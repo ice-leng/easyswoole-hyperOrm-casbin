@@ -1,0 +1,2 @@
+# easyswoole-hyperOrm-casbin
+permission
