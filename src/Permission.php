@@ -175,9 +175,12 @@ class Permission
                     if (!$apiPermission['desplay']) {
                         continue;
                     }
-                    // todo $userPermissions
-                    $apiPermission['selected'] = 0;
-                    $checkPermission[] = $apiPermission;
+                    $checkPermission[] = [
+                        'path'     => $apiPermission['path'],
+                        // todo $userPermissions
+                        'selected' => 0,
+                        'name'     => $apiPermission['name']
+                    ];
                 }
                 $hadPermission = $this->getValue($data, $groupName, []);
                 $newPermission = array_merge($hadPermission, $checkPermission);
