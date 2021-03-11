@@ -28,6 +28,11 @@ class ApiMenu extends AbstractAnnotationTag
     public $check;
 
     /**
+     * 请求方式
+     */
+    public $method = 'POST';
+
+    /**
      * 给前端的， 如果没有 就为 check 数据
      */
     public $id;
