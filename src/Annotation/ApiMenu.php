@@ -22,6 +22,11 @@ class ApiMenu extends AbstractAnnotationTag
      */
     public $name;
 
+    /**
+     * 权限验证 是否 显示
+     */
+    public $check;
+
     public function tagName(): string
     {
         return 'ApiMenu';
