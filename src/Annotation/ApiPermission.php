@@ -13,11 +13,6 @@ class ApiPermission extends AbstractAnnotationTag
 {
 
     /**
-     * 资源别名
-     */
-    public $alias;
-
-    /**
      * 资源， 默认为  注解Api  的 path
      */
     public $path;
@@ -28,11 +23,6 @@ class ApiPermission extends AbstractAnnotationTag
     public $method;
 
     /**
-     * 如果有值 则表示 当前 权限为 隐式权限
-     */
-    public $pid;
-
-    /**
      * 名称 默认为 注解Api 的 name
      */
     public $name;
@@ -40,10 +30,10 @@ class ApiPermission extends AbstractAnnotationTag
     /**
      * 默认是否自动加入权限
      */
-    public $isDefault;
+    public $display = true;
 
     public function tagName(): string
     {
-        return 'ApiMenu';
+        return 'ApiPermission';
     }
 }

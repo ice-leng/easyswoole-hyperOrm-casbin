@@ -3,6 +3,12 @@
 namespace EasySwooleTool\HyperfOrm\Permission;
 
 use Casbin\Enforcer;
+use EasySwoole\HttpAnnotation\Annotation\MethodAnnotation;
+use EasySwoole\HttpAnnotation\Annotation\ObjectAnnotation;
+use EasySwoole\HttpAnnotation\Utility\Scanner;
+use EasySwoole\Spl\SplArray;
+use EasySwooleTool\HyperfOrm\Permission\Annotation\ApiMenu;
+use EasySwooleTool\HyperfOrm\Permission\Annotation\ApiPermission;
 
 class Permission
 {
@@ -17,14 +23,167 @@ class Permission
     }
 
     /**
-     * @param string $obj
+     * @param string $path
      *
      * @return array
      */
-    public function getRouterPermission(string $obj): array
+    protected function scanPermission(string $path): array
     {
-        return [];
+        $permissionList = $data = [];
+        $apiMenu = new ApiMenu();
+        $apiPermission = new ApiPermission();
+        $list = (new Scanner())->scanAnnotations($path);
+        /**
+         * @var ObjectAnnotation $objectAnnotation
+         */
+        foreach ($list as $objectAnnotation) {
+            $menus = $objectAnnotation->getOtherTags()[$apiMenu->tagName()] ?? [];
+            if (empty($menus[0])) {
+                continue;
+            }
+            $menu = $menus[0];
+            $sort = $menu->sort;
+            $name = $menu->name;
+            if (is_null($name)) {
+                $name = '默认';
+                if ($objectAnnotation->getApiGroupTag()) {
+                    $name = $objectAnnotation->getApiGroupTag()->groupName;
+                }
+            }
+            $annotationPermission = [];
+            /**
+             * @var                  $methodName
+             * @var MethodAnnotation $method
+             */
+            foreach ($objectAnnotation->getMethod() as $methodName => $method) {
+                $apiTag = $method->getApiTag();
+                if (!$apiTag) {
+                    continue;
+                }
+                $permissions = $method->getOtherTags()[$apiPermission->tagName()] ?? [];
+                $permission = $permissions[0] ?? $apiPermission;
+                $apiPath = $permission->path ?? $apiTag->path;
+                $annotationPermission[] = $apiPath;
+                $permissionList[$apiPath] = [
+                    'path'    => $apiPath,
+                    'method'  => $permission->method ?? ($method->getMethodTag() ? $method->getMethodTag()->allow : [
+                            'get',
+                            'post',
+                            'delete',
+                            'put',
+                            'patch',
+                            'options',
+                            'head',
+                            'track',
+                        ]),
+                    'name'    => $permission->name ?? $apiTag->name,
+                    'desplay' => $permission->display,
+                ];
+            }
+            $data[$sort][$name] = $annotationPermission;
+        }
+        ksort($data);
+        return [$data, $permissionList];
     }
 
+    /**
+     * @param      $array
+     * @param      $key
+     * @param null $default
+     *
+     * @return mixed|null
+     */
+    public function getValue($array, $key, $default = null)
+    {
+        if (is_array($key)) {
+            $lastKey = array_pop($key);
+            foreach ($key as $keyPart) {
+                $array = static::getValue($array, $keyPart);
+            }
+            $key = $lastKey;
+        }
 
+        if (is_array($array) && (isset($array[$key]) || array_key_exists($key, $array))) {
+            return $array[$key];
+        }
+
+        if (($pos = strrpos($key, '/')) !== false) {
+            $array = static::getValue($array, substr($key, 0, $pos), $default);
+            $key = substr($key, $pos + 1);
+        }
+
+        if (is_object($array)) {
+            // this is expected to fail if the property does not exist, or __get() is not implemented
+            // it is not reliably possible to check whether a property is accessible beforehand
+            return $array->$key;
+        }
+
+        if (is_array($array)) {
+            return (isset($array[$key]) || array_key_exists($key, $array)) ? $array[$key] : $default;
+        }
+
+        return $default;
+    }
+
+    /**
+     * @param array $array
+     * @param       $path
+     * @param       $value
+     */
+    public function setValue(array &$array, $path, $value): void
+    {
+        if ($path === null) {
+            $array = $value;
+            return;
+        }
+
+        $keys = is_array($path) ? $path : explode('/', $path);
+
+        while (count($keys) > 1) {
+            $key = array_shift($keys);
+            if (!isset($array[$key])) {
+                $array[$key] = [];
+            }
+            if (!is_array($array[$key])) {
+                $array[$key] = [$array[$key]];
+            }
+            $array = &$array[$key];
+        }
+
+        $array[array_shift($keys)] = $value;
+    }
+
+    /**
+     * @param string $path
+     * @param string $roleId
+     *
+     * @return array
+     */
+    public function getPermissionsByRoleId(string $path, string $roleId)
+    {
+        [$groups, $permissions] = $this->scanPermission($path);
+        $userPermissions = $this->enforcer->getPermissionsForUser($roleId);
+        $data = [];
+        foreach ($groups as $group) {
+            foreach ($group as $groupName => $apiPermissions) {
+                $checkPermission = [];
+                foreach ($apiPermissions as $key => $apiPath) {
+                    $apiPermission = $permissions[$apiPath] ?? [];
+                    if (empty($apiPermission)) {
+                        continue;
+                    }
+                    if (!$apiPermission['desplay']) {
+                        continue;
+                    }
+                    // todo $userPermissions
+                    $apiPermission['selected'] = 0;
+                    $checkPermission[] = $apiPermission;
+                }
+                $hadPermission = $this->getValue($data, $groupName, []);
+                $newPermission = array_merge($hadPermission, $checkPermission);
+                $this->setValue($data, $groupName, $newPermission);
+            }
+        }
+        return $data;
+    }
 }

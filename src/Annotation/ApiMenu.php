@@ -13,14 +13,14 @@ use EasySwoole\HttpAnnotation\Exception\Annotation\InvalidTag;
 class ApiMenu extends AbstractAnnotationTag
 {
     /**
-     * @var string 模块组  必填
+     * @var int 排序
      */
-    public $modules;
+    public $sort;
 
     /**
-     * 模块名称， 如果为空 默认为 注解 ApiGroup.groupName
+     * 模块名称， 如果为空 默认为 注解 ApiGroup.groupName  如果分组 格式为 xx/xx/xx
      */
-    public $module;
+    public $name;
 
     public function tagName(): string
     {
@@ -29,8 +29,8 @@ class ApiMenu extends AbstractAnnotationTag
 
     function __onParser()
     {
-        if(empty($this->groupName)){
-            throw new InvalidTag("modules for ApiMenu tag is require");
+        if(empty($this->sort)){
+            throw new InvalidTag("sort for ApiMenu tag is require");
         }
     }
 }
