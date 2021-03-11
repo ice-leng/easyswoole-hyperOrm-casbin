@@ -6,16 +6,20 @@ use Casbin\Enforcer;
 use EasySwoole\HttpAnnotation\Annotation\MethodAnnotation;
 use EasySwoole\HttpAnnotation\Annotation\ObjectAnnotation;
 use EasySwoole\HttpAnnotation\Utility\Scanner;
-use EasySwoole\Spl\SplArray;
 use EasySwooleTool\HyperfOrm\Permission\Annotation\ApiMenu;
 use EasySwooleTool\HyperfOrm\Permission\Annotation\ApiPermission;
+use Lengbin\Common\Component\Singleton;
 
 class Permission
 {
+    use Singleton;
+
     /**
      * @var Enforcer
      */
     protected $enforcer;
+
+    protected $scanPermissionList = [];
 
     public function __construct()
     {
@@ -29,7 +33,10 @@ class Permission
      */
     protected function scanPermission(string $path): array
     {
-        $permissionList = $data = [];
+        if (!empty($this->scanPermissionList[$path])) {
+            return $this->scanPermissionList[$path];
+        }
+        $menuList = $permissionList = $data = [];
         $apiMenu = new ApiMenu();
         $apiPermission = new ApiPermission();
         $list = (new Scanner())->scanAnnotations($path);
@@ -44,6 +51,12 @@ class Permission
             $menu = $menus[0];
             $sort = $menu->sort;
             $name = $menu->name;
+            $menuList[$sort][$name] = [
+                'name'   => $name,
+                'check'  => $menu->check,
+                'method' => $menu->method,
+                'id'     => $menu->id ?? $menu->check,
+            ];
             if (is_null($name)) {
                 $name = '默认';
                 if ($objectAnnotation->getApiGroupTag()) {
@@ -83,7 +96,13 @@ class Permission
             $data[$sort][$name] = $annotationPermission;
         }
         ksort($data);
-        return [$data, $permissionList];
+        ksort($menuList);
+        $this->scanPermissionList[$path] = [
+            'group'      => $data,
+            'permission' => $permissionList,
+            'menu'       => $menuList,
+        ];
+        return $this->scanPermissionList[$path];
     }
 
     /**
@@ -161,25 +180,25 @@ class Permission
      */
     public function getPermissionsByRoleId(string $path, string $roleId)
     {
-        [$groups, $permissions] = $this->scanPermission($path);
+        $scanPermission = $this->scanPermission($path);
         $userPermissions = $this->enforcer->getPermissionsForUser($roleId);
         $data = [];
-        foreach ($groups as $group) {
+        foreach ($scanPermission['group'] as $group) {
             foreach ($group as $groupName => $apiPermissions) {
                 $checkPermission = [];
                 foreach ($apiPermissions as $key => $apiPath) {
-                    $apiPermission = $permissions[$apiPath] ?? [];
+                    $apiPermission = $scanPermission['permission'][$apiPath] ?? [];
                     if (empty($apiPermission)) {
                         continue;
                     }
-                    if (!$apiPermission['desplay']) {
+                    if (!$apiPermission['display']) {
                         continue;
                     }
                     $checkPermission[] = [
                         'path'     => $apiPermission['path'],
                         // todo $userPermissions
                         'selected' => 0,
-                        'name'     => $apiPermission['name']
+                        'name'     => $apiPermission['name'],
                     ];
                 }
                 $hadPermission = $this->getValue($data, $groupName, []);
