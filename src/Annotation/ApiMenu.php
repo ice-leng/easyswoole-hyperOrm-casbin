@@ -23,9 +23,14 @@ class ApiMenu extends AbstractAnnotationTag
     public $name;
 
     /**
-     * 权限验证 是否 显示
+     * 验证权限 path
      */
     public $check;
+
+    /**
+     * 给前端的， 如果没有 就为 check 数据
+     */
+    public $id;
 
     public function tagName(): string
     {
