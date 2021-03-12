@@ -9,6 +9,7 @@ use EasySwoole\HttpAnnotation\Annotation\ObjectAnnotation;
 use EasySwoole\HttpAnnotation\Utility\Scanner;
 use EasySwooleTool\HyperfOrm\Permission\Annotation\ApiMenu;
 use EasySwooleTool\HyperfOrm\Permission\Annotation\ApiPermission;
+use Casbin\Exceptions\CasbinException;
 
 class Permission
 {
@@ -21,17 +22,12 @@ class Permission
 
     protected $scanPermissionList = [];
 
-    public function __construct()
-    {
-        $this->enforcer = (new Casbin())->getEnforcer();
-    }
-
     /**
      * @param string $path
      *
      * @return array
      */
-    protected function scanPermission(string $path): array
+    public function scanPermission(string $path): array
     {
         if (!empty($this->scanPermissionList[$path])) {
             return $this->scanPermissionList[$path];
@@ -90,7 +86,7 @@ class Permission
                             'track',
                         ]),
                     'name'    => $permission->name ?? $apiTag->name,
-                    'desplay' => $permission->display,
+                    'display' => $permission->display,
                 ];
             }
             $data[$sort][$name] = $annotationPermission;
@@ -177,11 +173,13 @@ class Permission
      * @param string $roleId
      *
      * @return array
+     * @throws CasbinException
      */
     public function getPermissionsByRoleId(string $path, string $roleId)
     {
         $scanPermission = $this->scanPermission($path);
-        $userPermissions = $this->enforcer->getPermissionsForUser($roleId);
+        $userPermissions = $this->getEnforcer()->getPermissionsForUser($roleId);
+        $userPermissions = array_column($userPermissions, 1);
         $data = [];
         foreach ($scanPermission['group'] as $group) {
             foreach ($group as $groupName => $apiPermissions) {
@@ -196,8 +194,7 @@ class Permission
                     }
                     $checkPermission[] = [
                         'path'     => $apiPermission['path'],
-                        // todo $userPermissions
-                        'selected' => 0,
+                        'selected' => in_array($apiPermission['path'], $userPermissions),
                         'name'     => $apiPermission['name'],
                     ];
                 }
@@ -207,5 +204,54 @@ class Permission
             }
         }
         return $data;
+    }
+
+    /**
+     * @return Enforcer
+     * @throws CasbinException
+     */
+    public function getEnforcer(): Enforcer
+    {
+        if (!$this->enforcer) {
+            $this->enforcer = (new Casbin())->getEnforcer();
+        }
+        return $this->enforcer;
+    }
+
+    /**
+     * @param string $path
+     * @param string $roleId
+     * @param array  $permissions
+     * @throws CasbinException
+     * @return bool
+     */
+    public function generatePermission(string $path, string $roleId, array $permissions): bool
+    {
+        $this->getEnforcer()->deleteRole($roleId);
+        $scanPermission = Permission::getInstance()->scanPermission($path);
+        $status = true;
+        foreach ($permissions as $permission) {
+            $apiPermission = $scanPermission['permission'][$permission] ?? [];
+            if (empty($apiPermission)) {
+                $status = false;
+                break;
+            }
+        }
+        if (!$status) {
+            return $status;
+        }
+        foreach ($scanPermission['permission'] as $item) {
+            if ($item['display']) {
+                continue;
+            }
+            $permissions[] = $item['path'];
+        }
+        foreach ($permissions as $permission) {
+            $apiPermission = $scanPermission['permission'][$permission] ?? [];
+            foreach ($apiPermission['method'] as $method) {
+                $this->getEnforcer()->addPermissionForUser($roleId, $apiPermission['path'], $method);
+            }
+        }
+        return $status;
     }
 }
