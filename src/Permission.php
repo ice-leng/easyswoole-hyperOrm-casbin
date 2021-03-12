@@ -3,12 +3,12 @@
 namespace EasySwooleTool\HyperfOrm\Permission;
 
 use Casbin\Enforcer;
+use EasySwoole\Component\Singleton;
 use EasySwoole\HttpAnnotation\Annotation\MethodAnnotation;
 use EasySwoole\HttpAnnotation\Annotation\ObjectAnnotation;
 use EasySwoole\HttpAnnotation\Utility\Scanner;
 use EasySwooleTool\HyperfOrm\Permission\Annotation\ApiMenu;
 use EasySwooleTool\HyperfOrm\Permission\Annotation\ApiPermission;
-use Lengbin\Common\Component\Singleton;
 
 class Permission
 {
