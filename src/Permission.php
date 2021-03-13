@@ -254,4 +254,17 @@ class Permission
         }
         return $status;
     }
+
+    /**
+     * @param string $userId
+     * @param string $roleId
+     *
+     * @return bool
+     * @throws CasbinException
+     */
+    public function assign(string $userId, string $roleId): bool
+    {
+        $this->getEnforcer()->deleteUser($userId);
+        return $this->getEnforcer()->addRoleForUser($userId, $roleId);
+    }
 }
