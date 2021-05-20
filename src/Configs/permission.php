@@ -8,7 +8,7 @@ return [
         // Available Settings: "file", "text"
         'config_type' => 'file',
 
-        'config_file_path' => EASYSWOOLE_ROOT . '/storage/Casbin/casbin-rbac-model.conf',
+        'config_file_path' => EASYSWOOLE_ROOT . '/storage/casbin/casbin-rbac-model.conf',
 
         'config_text' => '',
     ],
