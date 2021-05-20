@@ -2,7 +2,7 @@
 
 declare(strict_types=1);
 
-namespace EasySwooleTool\HyperfOrm\Permission\Models;
+namespace EasySwoole\HyperfOrm\Permission\Models;
 
 use EasySwoole\EasySwoole\Config;
 use EasySwoole\HyperfOrm\Model;

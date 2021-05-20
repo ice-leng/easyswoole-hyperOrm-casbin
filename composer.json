@@ -17,7 +17,12 @@
     },
     "autoload": {
         "psr-4": {
-            "EasySwooleTool\\HyperfOrm\\Permission\\": "src/"
+            "EasySwoole\\HyperfOrm\\Permission\\": "src/"
+        }
+    },
+    "extra": {
+        "easyswoole": {
+            "config": "EasySwoole\\HyperfOrm\\Permission\\ConfigProvider"
         }
     }
 }

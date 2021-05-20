@@ -2,12 +2,12 @@
 
 declare(strict_types=1);
 
-namespace EasySwooleTool\HyperfOrm\Permission\Adapters;
+namespace EasySwoole\HyperfOrm\Permission\Adapters;
 
 use Casbin\Persist\AdapterHelper;
 use Casbin\Model\Model;
 use Casbin\Persist\Adapter;
-use EasySwooleTool\HyperfOrm\Permission\Models\Rule;
+use EasySwoole\HyperfOrm\Permission\Models\Rule;
 
 class DatabaseAdapter implements Adapter
 {

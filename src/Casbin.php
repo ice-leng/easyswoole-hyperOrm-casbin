@@ -1,13 +1,13 @@
 <?php
 
-namespace EasySwooleTool\HyperfOrm\Permission;
+namespace EasySwoole\HyperfOrm\Permission;
 
 use Casbin\Enforcer;
 use Casbin\Exceptions\CasbinException;
 use Casbin\Model\Model;
 use EasySwoole\Component\Di;
 use EasySwoole\EasySwoole\Config;
-use EasySwooleTool\HyperfOrm\Permission\Adapters\DatabaseAdapter;
+use EasySwoole\HyperfOrm\Permission\Adapters\DatabaseAdapter;
 
 class Casbin
 {

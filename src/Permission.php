@@ -1,14 +1,14 @@
 <?php
 
-namespace EasySwooleTool\HyperfOrm\Permission;
+namespace EasySwoole\HyperfOrm\Permission;
 
 use Casbin\Enforcer;
 use EasySwoole\Component\Singleton;
 use EasySwoole\HttpAnnotation\Annotation\MethodAnnotation;
 use EasySwoole\HttpAnnotation\Annotation\ObjectAnnotation;
 use EasySwoole\HttpAnnotation\Utility\Scanner;
-use EasySwooleTool\HyperfOrm\Permission\Annotation\ApiMenu;
-use EasySwooleTool\HyperfOrm\Permission\Annotation\ApiPermission;
+use EasySwoole\HyperfOrm\Permission\Annotation\ApiMenu;
+use EasySwoole\HyperfOrm\Permission\Annotation\ApiPermission;
 use Casbin\Exceptions\CasbinException;
 
 class Permission

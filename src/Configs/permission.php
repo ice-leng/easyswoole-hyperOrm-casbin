@@ -8,7 +8,7 @@ return [
         // Available Settings: "file", "text"
         'config_type' => 'file',
 
-        'config_file_path' => __DIR__ . '/casbin-rbac-model.conf',
+        'config_file_path' => EASYSWOOLE_ROOT . '/App/Storage/Casbin/casbin-rbac-model.conf',
 
         'config_text' => '',
     ],
@@ -16,7 +16,7 @@ return [
     /*
     * Casbin adapter .
     */
-    'adapter' => \EasySwooleTool\HyperfOrm\Permission\Adapters\DatabaseAdapter::class,
+    'adapter' => \EasySwoole\HyperfOrm\Permission\Adapters\DatabaseAdapter::class,
 
     /*
     * Database setting.

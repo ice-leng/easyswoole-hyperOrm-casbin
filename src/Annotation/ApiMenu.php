@@ -1,6 +1,6 @@
 <?php
 
-namespace EasySwooleTool\HyperfOrm\Permission\Annotation;
+namespace EasySwoole\HyperfOrm\Permission\Annotation;
 
 use EasySwoole\Annotation\AbstractAnnotationTag;
 use EasySwoole\HttpAnnotation\Exception\Annotation\InvalidTag;
