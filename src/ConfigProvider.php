@@ -35,7 +35,7 @@ class ConfigProvider
                     'id' => 'casbin',
                     'description' => 'The config for casbin config.',
                     'source' => __DIR__ . '/Configs/casbin-rbac-model.conf',
-                    'destination' => EASYSWOOLE_ROOT . '/App/Storage/Casbin/casbin-rbac-model.conf',
+                    'destination' => EASYSWOOLE_ROOT . '/storage/casbin/casbin-rbac-model.conf',
                 ],
             ],
         ];
