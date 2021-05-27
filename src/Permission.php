@@ -24,11 +24,6 @@ class Permission
 
     protected $scanPermissionList = [];
 
-    public function endWord($string, $delimiter)
-    {
-        return $delimiter === '' ? $string : array_reverse(explode($delimiter, $string))[0];
-    }
-
     /**
      * @param string $path
      *
@@ -39,7 +34,7 @@ class Permission
         if (!empty($this->scanPermissionList[$path])) {
             return $this->scanPermissionList[$path];
         }
-        $menuList = $permissionList = $data = [];
+        $parentMenuIcon = $menuList = $permissionList = $data = [];
         $apiMenu = new ApiMenu();
         $apiPermission = new ApiPermission();
         $list = (new Scanner())->scanAnnotations($path);
@@ -84,7 +79,6 @@ class Permission
                         ]),
                     'name'    => $permission->name ?? $apiTag->name,
                     'display' => $permission->display,
-
                 ];
             }
 
@@ -94,11 +88,17 @@ class Permission
                 $sort = $menu->sort;
                 $name = $menu->name ?? $name;
                 $router = $menu->path ?? $listPath;
+                $names = explode('/', $name);
+                $menuName = array_pop($names);
+                $newName = implode('/', $names);
+                if (empty($parentMenuIcon[$newName])) {
+                    $parentMenuIcon[$newName] = $menu->parentIcon;
+                }
                 $menuList[$sort][$name] = [
                     'key'           => $menu->key ?? $router,
                     'path'          => $router,
                     'icon'          => $menu->icon,
-                    'name'          => $this->endWord($name, '/'),
+                    'name'          => $menuName,
                     'exact'         => $menu->exact,
                     'redirect'      => $menu->redirect,
                     'componentPath' => $menu->componentPath,
@@ -116,15 +116,16 @@ class Permission
         $this->scanPermissionList[$path] = [
             'group'      => $data,
             'permission' => $permissionList,
-            'menu'       => $this->generateMenu($menuList),
+            'menu'       => $this->generateMenu($menuList, $parentMenuIcon),
         ];
         return $this->scanPermissionList[$path];
     }
 
-    protected function initMenu(string $name): array
+    protected function initMenu(string $name, string $icon): array
     {
         $apiMenu = new ApiMenu();
         $apiMenu->name = $name;
+        $apiMenu->icon = $icon;
         $apiMenu->key = '/' . SnowFlake::make(1, 1);
         $apiMenu->path = $apiMenu->key;
         $fileds = [
@@ -145,18 +146,19 @@ class Permission
         return $data;
     }
 
-    protected function generateChildMenu(array $menus)
+    protected function generateChildMenu(array $menus, array $parentMenuIcon, string $parentName)
     {
         $data = [];
         foreach ($menus as $name => $menu) {
-            $parentMenu = $this->initMenu($name);
-            $parentMenu['childRoutes'] = count($menu) === 1 ? $this->generateChildMenu($menu) : array_values($menu);
+            $parentName .= ('/' . $name);
+            $parentMenu = $this->initMenu($name, $parentMenuIcon[$parentName] ?? '');
+            $parentMenu['childRoutes'] = count($menu) === 1 ? $this->generateChildMenu($menu, $parentMenuIcon, $parentName) : array_values($menu);
             $data[] = $parentMenu;
         }
         return $data;
     }
 
-    protected function generateMenu(array $menus): array
+    protected function generateMenu(array $menus, array $parentMenuIcon): array
     {
         $results = $data = [];
         foreach ($menus as $menu) {
@@ -167,8 +169,8 @@ class Permission
             }
         }
         foreach ($results as $name => $result) {
-            $parentMenu = $this->initMenu($name);
-            $parentMenu['childRoutes'] = count($result) === 1 ? $this->generateChildMenu($result) : array_values($result);
+            $parentMenu = $this->initMenu($name, $parentMenuIcon[$name] ?? '');
+            $parentMenu['childRoutes'] = count($result) === 1 ? $this->generateChildMenu($result, $parentMenuIcon, $name) : array_values($result);
             $data[] = $parentMenu;
         }
         return $data;

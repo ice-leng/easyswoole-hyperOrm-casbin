@@ -28,6 +28,11 @@ class ApiMenu extends AbstractAnnotationTag
     public $icon = '';
 
     /**
+     * @var string
+     */
+    public $parentIcon = '';
+
+    /**
      * 模块名称 如果没有 默认为 ApiGroupDescription
      */
     public $name;
