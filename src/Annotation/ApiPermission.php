@@ -28,7 +28,13 @@ class ApiPermission extends AbstractAnnotationTag
     public $name;
 
     /**
-     * 默认是否自动加入权限
+     * 是否菜单项
+     * @var bool
+     */
+    public $isMenu = false;
+
+    /**
+     * 默认是否自动加入权限列表显示
      */
     public $display = true;
 

@@ -13,19 +13,49 @@ use EasySwoole\HttpAnnotation\Exception\Annotation\InvalidTag;
 class ApiMenu extends AbstractAnnotationTag
 {
     /**
-     * @var int 排序
+     * 给前端的， 如果没有 就为 path
      */
-    public $sort;
+    public $key;
 
     /**
-     * 模块名称， 如果为空 默认为 注解 ApiGroup.groupName  如果分组 格式为 xx/xx/xx
+     * 路由， 默认为 list 的 path
+     */
+    public $path;
+
+    /**
+     * @var string
+     */
+    public $icon = '';
+
+    /**
+     * 模块名称 如果没有 默认为 ApiGroupDescription
      */
     public $name;
 
     /**
-     * 验证权限 path
+     * 是否严格匹配路由
+     * @var bool
      */
-    public $check;
+    public $exact = true;
+
+    /**
+     * 重定向到某个路由地址
+     * @var string
+     */
+    public $redirect = '';
+
+    /**
+     * 页面组件路径，相对位置
+     *
+     * @var string
+     */
+    public $componentPath = '@/pages/Default/index';
+
+    /**
+     * 是否菜单项
+     * @var bool
+     */
+    public $isMenu = true;
 
     /**
      * 请求方式
@@ -33,9 +63,9 @@ class ApiMenu extends AbstractAnnotationTag
     public $method = 'POST';
 
     /**
-     * 给前端的， 如果没有 就为 check 数据
+     * @var int 排序
      */
-    public $id;
+    public $sort;
 
     public function tagName(): string
     {

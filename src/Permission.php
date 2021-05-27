@@ -10,6 +10,8 @@ use EasySwoole\HttpAnnotation\Utility\Scanner;
 use EasySwoole\HyperfOrm\Permission\Annotation\ApiMenu;
 use EasySwoole\HyperfOrm\Permission\Annotation\ApiPermission;
 use Casbin\Exceptions\CasbinException;
+use EasySwoole\Utility\SnowFlake;
+use Hyperf\Utils\Str;
 
 class Permission
 {
@@ -21,6 +23,11 @@ class Permission
     protected $enforcer;
 
     protected $scanPermissionList = [];
+
+    public function endWord($string, $delimiter)
+    {
+        return $delimiter === '' ? $string : array_reverse(explode($delimiter, $string))[0];
+    }
 
     /**
      * @param string $path
@@ -40,26 +47,13 @@ class Permission
          * @var ObjectAnnotation $objectAnnotation
          */
         foreach ($list as $objectAnnotation) {
-            $menus = $objectAnnotation->getOtherTags()[$apiMenu->tagName()] ?? [];
-            if (empty($menus[0])) {
-                continue;
-            }
-            $menu = $menus[0];
-            $sort = $menu->sort;
-            $name = $menu->name;
-            $menuList[$sort][$name] = [
-                'name'   => $name,
-                'check'  => $menu->check,
-                'method' => $menu->method,
-                'id'     => $menu->id ?? $menu->check,
-            ];
-            if (is_null($name)) {
-                $name = '默认';
-                if ($objectAnnotation->getApiGroupTag()) {
-                    $name = $objectAnnotation->getApiGroupTag()->groupName;
-                }
-            }
             $annotationPermission = [];
+            $name = '默认';
+            $sort = 0;
+            $listPath = '';
+            if ($objectAnnotation->getApiGroupTag()) {
+                $name = $objectAnnotation->getApiGroupTag()->groupName;
+            }
             /**
              * @var                  $methodName
              * @var MethodAnnotation $method
@@ -73,32 +67,111 @@ class Permission
                 $permission = $permissions[0] ?? $apiPermission;
                 $apiPath = $permission->path ?? $apiTag->path;
                 $annotationPermission[] = $apiPath;
+                if ($permission->isMenu || !$listPath && Str::endsWith($apiPath, 'list')) {
+                    $listPath = $apiPath;
+                }
                 $permissionList[$apiPath] = [
                     'path'    => $apiPath,
                     'method'  => $permission->method ?? ($method->getMethodTag() ? $method->getMethodTag()->allow : [
-                            'get',
-                            'post',
-                            'delete',
-                            'put',
-                            'patch',
-                            'options',
-                            'head',
-                            'track',
+                            'GET',
+                            'POST',
+                            'DELETE',
+                            'PUT',
+                            'PATCH',
+                            'OPTIONS',
+                            'HEAD',
+                            'TRACK',
                         ]),
                     'name'    => $permission->name ?? $apiTag->name,
                     'display' => $permission->display,
+
                 ];
             }
-            $data[$sort][$name] = $annotationPermission;
+
+            $menus = $objectAnnotation->getOtherTags()[$apiMenu->tagName()] ?? [];
+            if (!empty($menus[0])) {
+                $menu = $menus[0];
+                $sort = $menu->sort;
+                $name = $menu->name ?? $name;
+                $router = $menu->path ?? $listPath;
+                $menuList[$sort][$name] = [
+                    'key'           => $menu->key ?? $router,
+                    'path'          => $router,
+                    'icon'          => $menu->icon,
+                    'name'          => $this->endWord($name, '/'),
+                    'exact'         => $menu->exact,
+                    'redirect'      => $menu->redirect,
+                    'componentPath' => $menu->componentPath,
+                    'isMenu'        => $menu->isMenu,
+                    'method'        => $menu->method,
+                ];
+            }
+
+            if ($sort > 0) {
+                $data[$sort][$name] = $annotationPermission;
+            }
         }
         ksort($data);
         ksort($menuList);
         $this->scanPermissionList[$path] = [
             'group'      => $data,
             'permission' => $permissionList,
-            'menu'       => $menuList,
+            'menu'       => $this->generateMenu($menuList),
         ];
         return $this->scanPermissionList[$path];
+    }
+
+    protected function initMenu(string $name): array
+    {
+        $apiMenu = new ApiMenu();
+        $apiMenu->name = $name;
+        $apiMenu->key = '/' . SnowFlake::make(1, 1);
+        $apiMenu->path = $apiMenu->key;
+        $fileds = [
+            'key',
+            'path',
+            'icon',
+            'name',
+            'exact',
+            'redirect',
+            'componentPath',
+            'isMenu',
+            'method',
+        ];
+        $data = [];
+        foreach ($fileds as $filed) {
+            $data[$filed] = $apiMenu->{$filed};
+        }
+        return $data;
+    }
+
+    protected function generateChildMenu(array $menus)
+    {
+        $data = [];
+        foreach ($menus as $name => $menu) {
+            $parentMenu = $this->initMenu($name);
+            $parentMenu['childRoutes'] = count($menu) === 1 ? $this->generateChildMenu($menu) : array_values($menu);
+            $data[] = $parentMenu;
+        }
+        return $data;
+    }
+
+    protected function generateMenu(array $menus): array
+    {
+        $results = $data = [];
+        foreach ($menus as $menu) {
+            foreach ($menu as $key => $value) {
+                $hasMenu = $this->getValue($results, $key, []);
+                $newMenu = array_merge($hasMenu, $value);
+                $this->setValue($results, $key, $newMenu);
+            }
+        }
+        foreach ($results as $name => $result) {
+            $parentMenu = $this->initMenu($name);
+            $parentMenu['childRoutes'] = count($result) === 1 ? $this->generateChildMenu($result) : array_values($result);
+            $data[] = $parentMenu;
+        }
+        return $data;
     }
 
     /**
@@ -222,8 +295,9 @@ class Permission
      * @param string $path
      * @param string $roleId
      * @param array  $permissions
-     * @throws CasbinException
+     *
      * @return bool
+     * @throws CasbinException
      */
     public function generatePermission(string $path, string $roleId, array $permissions): bool
     {
