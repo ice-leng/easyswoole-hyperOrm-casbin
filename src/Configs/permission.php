@@ -26,7 +26,7 @@ return [
         'connection' => '',
 
         // Rule table name.
-        'rules_table' => 'casbin_rules',
+        'rules_table' => 'auth_rules',
     ],
 
     'log' => [
