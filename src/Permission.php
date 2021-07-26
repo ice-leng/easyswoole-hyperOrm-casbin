@@ -316,12 +316,12 @@ class Permission
         if (!$status) {
             return $status;
         }
-        foreach ($scanPermission['permission'] as $item) {
-            if ($item['display']) {
-                continue;
-            }
-            $permissions[] = $item['path'];
-        }
+//        foreach ($scanPermission['permission'] as $item) {
+//            if ($item['display']) {
+//                continue;
+//            }
+//            $permissions[] = $item['path'];
+//        }
         foreach ($permissions as $permission) {
             $apiPermission = $scanPermission['permission'][$permission] ?? [];
             foreach ($apiPermission['method'] as $method) {
